@@ -1,9 +1,9 @@
-﻿using SnpCaller.Contexts.Interfaces;
-using SnpCaller.Models;
+﻿using ChipEmailer.Contexts;
+using ChipEmailer.Models;
 using System;
 using System.Collections.Generic;
 
-namespace SnpCaller.Repositories
+namespace ChipEmailer.Repositories
 {
     public class CacheRepository : BaseRepository, ICacheRepository
     {
@@ -11,7 +11,7 @@ namespace SnpCaller.Repositories
         private int _secondsBetweenRefresh = 1800;
 
         public CacheRepository(
-            ISnpCallerDbContext dbContext
+            IChipEmailerDbContext dbContext
             )
             : base(dbContext)
         {

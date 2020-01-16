@@ -1,7 +1,6 @@
-﻿using Dapper;
-using SnpCaller;
-using SnpCaller.Contexts.Interfaces;
-using SnpCaller.Models;
+﻿using ChipEmailer.Contexts;
+using ChipEmailer.Models;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static Dapper.SqlMapper;
 
-namespace SnpCaller.Repositories
+namespace ChipEmailer.Repositories
 {
     public class BaseRepository : IBaseRepository
     {

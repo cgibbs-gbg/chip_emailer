@@ -3,14 +3,13 @@ using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SnpCaller.Repositories;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Mail;
+using ChipEmailer.Repositories;
+using NLog.Web;
+using System;
 
 namespace ChipEmailer
 {
@@ -20,6 +19,7 @@ namespace ChipEmailer
         private readonly IConfiguration _configuration;
         private readonly ICacheRepository _cacheRepo;
         private readonly IDbConnection _transactionManager;
+        private readonly IFinchRepository _finchRepo;
 
         private const int COMMAND_TIMEOUT = 300;
 
@@ -38,13 +38,13 @@ namespace ChipEmailer
             ILogger<ChipEmailer> logger,
             IConfiguration configuration,
             ICacheRepository cacheRepo,
-            IDbConnection transactionManager
+            IFinchRepository finchRepo
             )
         {
             _logger = logger;
             _configuration = configuration;
             _cacheRepo = cacheRepo;
-            _transactionManager = transactionManager;
+            _finchRepo = finchRepo;
         }
 
         private static IDictionary<string, int> PipelinePrecedence = new Dictionary<string, int>
@@ -107,6 +107,28 @@ namespace ChipEmailer
 
         public void Run()
         {
+      // TODO:
+      // check for finch orders (ftdna_edi_order) order data <=2 weeks ago without Complete allele in adb_allele
+      // do the email stuff below with total list
+      try
+      {
+        var chips = _finchRepo.GetPastDateChips();
+
+        var chip = chips.First();
+        Console.WriteLine(chip.OrderId);
+        Console.WriteLine(chip.OrderDate);
+        Console.WriteLine(chip.Marker);
+        Console.WriteLine(chip.Priority);
+        Console.WriteLine(chip.ReqId);
+        Console.WriteLine(chip.AlleleId);
+        Console.WriteLine(chip.Batch);
+        Console.WriteLine(chip.Panel);
+      } catch (Exception e)
+      {
+        Console.WriteLine("oops... you bwoke it");
+        Console.WriteLine(e);
+        throw;
+      }
             //// Send notification for flagged error bin kits
             //if (flaggedKitsErrors.Count() > 0)
             //{

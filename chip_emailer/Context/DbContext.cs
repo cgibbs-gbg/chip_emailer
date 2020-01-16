@@ -1,9 +1,8 @@
 ﻿using Npgsql;
-using SnpCaller.Contexts.Interfaces;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace SnpCaller.Contexts
+namespace ChipEmailer.Contexts
 {
     public class DbContext : IDbContext
     {

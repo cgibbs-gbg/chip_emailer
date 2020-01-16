@@ -1,4 +1,4 @@
-﻿namespace SnpCaller.Models
+﻿namespace ChipEmailer.Models
 {
     public class NotificationType
     {

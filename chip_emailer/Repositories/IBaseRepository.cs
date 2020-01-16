@@ -4,7 +4,7 @@ using System.Data;
 using System.Threading.Tasks;
 using static Dapper.SqlMapper;
 
-namespace SnpCaller.Repositories
+namespace ChipEmailer.Repositories
 {
     public interface IBaseRepository
     {

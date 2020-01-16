@@ -1,7 +1,7 @@
-﻿using SnpCaller.Models;
+﻿using ChipEmailer.Models;
 using System.Collections.Generic;
 
-namespace SnpCaller.Repositories
+namespace ChipEmailer.Repositories
 {
     public interface ICacheRepository : IBaseRepository
     {

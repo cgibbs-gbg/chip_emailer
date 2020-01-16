@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace SnpCaller.Contexts.Interfaces
+namespace ChipEmailer.Contexts
 {
     public interface IDbContext
     {

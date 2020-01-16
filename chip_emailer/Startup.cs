@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ChipEmailer.Contexts;
+using ChipEmailer.Repositories;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Ragnarok.GxG.Extensions;
 using Serilog;
 using System;
 using System.IO;
@@ -16,9 +17,18 @@ namespace ChipEmailer
         {
             try
             {
+        Console.WriteLine("GERALD");
+                var env = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
+                Console.WriteLine(env);
+                if (string.IsNullOrEmpty(env))
+                {
+                  env = "production";
+                }
+
                 var builder = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json");
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile($"appsettings.{env}.json", optional: true);
                 Configuration = builder.Build();
 
                 var services = new ServiceCollection();
@@ -51,9 +61,6 @@ namespace ChipEmailer
             // Security
             services.AddDataProtection();
 
-            // Add Ragnarok services
-            services.AddRagnarokServices(Configuration);
-
             // Add logging provider
             services.AddLogging().AddSingleton(new LoggerFactory()
                 .AddSerilog(
@@ -64,8 +71,13 @@ namespace ChipEmailer
                 ).CreateLogger<ChipEmailer>()
             );
 
-            // This app
-            services.AddTransient<ChipEmailer>();
+      services.AddScoped<IChipEmailerDbContext>(provider => new ChipEmailerDbContext(Configuration["DbSettings:Finch:ConnectionString"]));
+
+      services.AddScoped<ICacheRepository, CacheRepository>();
+      services.AddScoped<IFinchRepository, FinchRepository>();
+
+      // This app
+      services.AddTransient<ChipEmailer>();
         }
 
         private static string _createLogFileName(string suffix = "")

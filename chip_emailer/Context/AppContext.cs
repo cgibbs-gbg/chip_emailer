@@ -1,6 +1,6 @@
-﻿using SnpCaller.Models;
+﻿using ChipEmailer.Models;
 
-namespace SnpCaller.Contexts
+namespace ChipEmailer.Contexts
 {
     public class AppContext
     {
