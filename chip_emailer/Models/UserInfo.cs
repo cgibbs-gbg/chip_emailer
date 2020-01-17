@@ -27,7 +27,7 @@ namespace ChipEmailer.Models
         {
             get
             {
-                return IsMemberOf("All.Administrators") || IsMemberOf("Ragnarok.Administrators");
+                return IsMemberOf("All.Administrators");
             }
         }
 
@@ -35,7 +35,7 @@ namespace ChipEmailer.Models
         {
             get
             {
-                return IsAdmin || IsMemberOf("Ragnarok.Users");
+                return IsAdmin;
             }
         }
 
