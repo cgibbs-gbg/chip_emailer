@@ -19,13 +19,10 @@ namespace ChipEmailer.Queries
                 .Where(m => m.StartsWith(thisNamespace) && m.EndsWith(".sql"));
             foreach (var resourceName in resourceNames)
             {
-        Console.WriteLine(resourceName);
                 var cleanResourceName = resourceName.Replace(thisNamespace, "");
-        Console.WriteLine(cleanResourceName);
                 var resourceStream = assembly.GetManifestResourceStream(resourceName);
                 if (resourceStream == null)
                 {
-          Console.WriteLine("null!");
                     continue;
                 }
                 

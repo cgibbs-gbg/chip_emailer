@@ -10,6 +10,10 @@ using System.Linq;
 using ChipEmailer.Repositories;
 using NLog.Web;
 using System;
+using System.Globalization;
+using System.Net.Mail;
+using System.Net;
+using System.Net.Mime;
 
 namespace ChipEmailer
 {
@@ -70,8 +74,9 @@ namespace ChipEmailer
         };
 
         private static IList<string> CoreApiKitPipelines = new List<string> { "BT", "HG", "DL", "LN", "HH", "CG", "DR", "DZ", "MA", "ME", "UF" };
+        private CultureInfo cultureInfo = new CultureInfo("en-US");
 
-        private CategoryHistoryRecord DeterminePrecedentCategory(List<CategoryHistoryRecord> categoryHistory)
+    private CategoryHistoryRecord DeterminePrecedentCategory(List<CategoryHistoryRecord> categoryHistory)
         {
             CategoryHistoryRecord bestMatch = null;
 
@@ -107,62 +112,54 @@ namespace ChipEmailer
 
         public void Run()
         {
-      // TODO:
-      // check for finch orders (ftdna_edi_order) order data <=2 weeks ago without Complete allele in adb_allele
-      // do the email stuff below with total list
-      try
-      {
-        var chips = _finchRepo.GetPastDateChips();
+          // TODO:
+          // check for finch orders (ftdna_edi_order) order data <=2 weeks ago without Complete allele in adb_allele
+          // do the email stuff below with total list
+          try
+          {
+            var chipStrings = _finchRepo.GetPastDateChips()
+              .OrderBy(p => p.GrcNumber).ThenBy(p => p.Marker).ThenBy(p => p.OrderDate)
+              .Select(chip => string.Join(',', new string[] { chip.OrderId.ToString(), chip.GrcNumber, chip.Panel, chip.Marker, chip.OrderDate.ToShortDateString(),
+                        chip.Batch, chip.ReqId.ToString(), chip.Priority.ToString(), chip.AlleleId.ToString() }))
+              ;
 
-        var chip = chips.First();
-        Console.WriteLine(chip.OrderId);
-        Console.WriteLine(chip.OrderDate);
-        Console.WriteLine(chip.Marker);
-        Console.WriteLine(chip.Priority);
-        Console.WriteLine(chip.ReqId);
-        Console.WriteLine(chip.AlleleId);
-        Console.WriteLine(chip.Batch);
-        Console.WriteLine(chip.Panel);
-      } catch (Exception e)
-      {
-        Console.WriteLine("oops... you bwoke it");
-        Console.WriteLine(e);
-        throw;
-      }
-            //// Send notification for flagged error bin kits
-            //if (flaggedKitsErrors.Count() > 0)
-            //{
-            //    _logger.LogInformation(string.Format("Detected {0} flagged kits", flaggedKitsErrors.Count()));
-            //    try
-            //    {
-            //        var recipients = string.Join(",", _configuration.GetSection("Notifications:Email:Recipients").Get<string[]>());
+            var filename = "C:\\Temp\\TAT_" + DateTime.Today.ToString("yyyy-MM-dd") + ".csv";
+            using (var writeFile = new StreamWriter(filename))
+            {
+              writeFile.Write("OrderId,GRCNumber,Panel,Marker,OrderDate,Batch,ReqId,Priority,AlleleId\n" + string.Join("\n", chipStrings));
+            }
 
-            //        _logger.LogInformation(string.Format("Attempting to send notification email to {0}", recipients));
-            //        var smtpClient = new SmtpClient
-            //        {
-            //            Host = _configuration["Notifications:Email:Hostname"],
-            //            Port = int.Parse(_configuration["Notifications:Email:Port"]),
-            //            EnableSsl = true,
-            //            UseDefaultCredentials = false,
-            //            DeliveryMethod = SmtpDeliveryMethod.Network,
-            //            Credentials = new NetworkCredential(_configuration["Notifications:Email:Username"], _configuration["Notifications:Email:Password"])
-            //        };
-            //        using (var msg =
-            //            new MailMessage(_configuration["Notifications:Email:Username"], recipients)
-            //            {
-            //                Subject = $"AutoSorter - Flagged Kit Detected in Error Bin",
-            //                Body = $"Detected flagged kits in Error Bin:\r\n\r\n{string.Join("\r\n", flaggedKitsErrors)}"
-            //            })
-            //        {
-            //            smtpClient.Send(msg);
-            //            _logger.LogInformation("Notification email successfully sent");
-            //        }
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        _logger.LogInformation("Exception occurred while attempting to send email:\r\n{0}\r\n{1}", e.Message, e.StackTrace);
-            //    }
-            //}
+            var recipients = string.Join(",", _configuration.GetSection("Notifications:Email:Recipients").Get<string[]>());
+
+            _logger.LogInformation(string.Format("Attempting to send notification email to {0}", recipients));
+            var smtpClient = new SmtpClient
+            {
+              Host = _configuration["Notifications:Email:Hostname"],
+              Port = int.Parse(_configuration["Notifications:Email:Port"]),
+              EnableSsl = true,
+              UseDefaultCredentials = false,
+              DeliveryMethod = SmtpDeliveryMethod.Network,
+              Credentials = new NetworkCredential(_configuration["Notifications:Email:Username"], _configuration["Notifications:Email:Password"])
+            };
+            using (var msg =
+                new MailMessage(_configuration["Notifications:Email:Username"], recipients)
+                {
+                  Subject = $"Finch Chip Turnaround Time Report",
+                  Body = $"Attached is a list of samples have exceeded the 2 week TAT. Please review for errors."
+                })
+            {
+              Attachment data = new Attachment(filename, MediaTypeNames.Application.Octet);
+              msg.Attachments.Add(data);
+              smtpClient.Send(msg);
+              _logger.LogInformation("Notification email successfully sent");
+            }
+          }
+          catch (Exception e)
+          {
+            Console.WriteLine("oops... you bwoke it");
+            Console.WriteLine(e);
+            throw;
+          }
         }
 
         private int CreateSystemEvent(IDbTransaction transaction)

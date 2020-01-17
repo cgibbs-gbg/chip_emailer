@@ -19,7 +19,6 @@ namespace ChipEmailer
             {
         Console.WriteLine("GERALD");
                 var env = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
-                Console.WriteLine(env);
                 if (string.IsNullOrEmpty(env))
                 {
                   env = "production";

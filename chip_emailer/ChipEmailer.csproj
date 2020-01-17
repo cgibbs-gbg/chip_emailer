@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="13.0.0" />
     <PackageReference Include="Dapper" Version="1.50.4" />
     <PackageReference Include="IdentityModel" Version="3.5.0" />
     <PackageReference Include="MediatR" Version="5.1.0" />
